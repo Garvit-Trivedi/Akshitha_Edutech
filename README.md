@@ -1,109 +1,134 @@
-# Akshitha Edutech Company — Careers Portal (Frontend)
+# Akshitha Edutech — Career & Job Portal
 
-A complete, editable frontend for an employment and career-services portal. The structure (job search, employer services, career guidance and job fairs) is like a national career portal, but the branding, content and design are all original.
+A full-stack employment and career-services portal connecting job seekers, verified employers, educational institutions, and career counsellors across India.
 
-Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript** and **Tailwind CSS v4**.
+- **Live Frontend**: [https://akshita-jade.vercel.app](https://akshita-jade.vercel.app)
+- **Live Backend API**: [https://akshitha-edutech.onrender.com](https://akshitha-edutech.onrender.com)
 
 ---
 
-## 1. Requirements
+## ⚡ Tech Stack
 
-- [Node.js](https://nodejs.org/) **20.9 or newer**
-- [pnpm](https://pnpm.io/) (recommended) or npm
-- [VS Code](https://code.visualstudio.com/) (recommended extensions: *Tailwind CSS IntelliSense*, *ESLint*)
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Lucide Icons |
+| **Backend** | Node.js, Express.js, TypeScript, Mongoose, Zod, JWT, Multer, Helmet, CORS |
+| **Database** | MongoDB (Local / MongoDB Atlas) |
+| **Deployment** | Vercel (Frontend) + Render (Backend) |
 
-## 2. Install & run
+---
+
+## 🚀 How to Run Locally
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v20.9 or newer)
+- [pnpm](https://pnpm.io/) or `npm`
+- MongoDB running locally (`mongodb://127.0.0.1:27017`) or a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
+
+---
+
+### Step 1: Clone & Install Dependencies
 
 ```bash
-# 1. Open the folder in VS Code
-code future-akshita
+# Clone the repository
+git clone https://github.com/Garvit-Trivedi/Akshitha_Edutech.git
+cd Akshitha_Edutech
 
-# 2. Install dependencies
-pnpm install        # or: npm install
+# Install frontend dependencies
+pnpm install          # or: npm install
 
-# 3. Start the dev server
-pnpm dev            # or: npm run dev
+# Install backend dependencies
+cd backend
+npm install
+cd ..
 ```
 
-Then open http://localhost:3000.
+---
 
-### Production build
+### Step 2: Configure Environment Variables
+
+**1. Frontend (`.env.local` in root directory):**
+```env
+# For local backend:
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+
+# Or point to live Render backend:
+# NEXT_PUBLIC_API_URL=https://akshitha-edutech.onrender.com/api/v1
+```
+
+**2. Backend (`backend/.env` in backend directory):**
+```bash
+cp backend/.env.example backend/.env
+```
+Ensure `backend/.env` contains:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/akshitha_edutech
+JWT_SECRET=your_super_secret_jwt_key_min32chars!
+JWT_EXPIRES_IN=7d
+COOKIE_NAME=token
+CLIENT_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://akshita-jade.vercel.app
+UPLOAD_DIR=uploads/resumes
+```
+
+---
+
+### Step 3: Initialize Database & Start Backend
+
+Open a terminal in the `backend/` directory:
 
 ```bash
-pnpm build
-pnpm start
+cd backend
+
+# 1. Create the default administrator account
+npm run seed:admin
+
+# 2. (Optional) Seed realistic companies, jobs, and hiring fairs
+npm run seed
+
+# 3. Start the backend development server
+npm run dev
+```
+> Backend runs at: **`http://localhost:5000`** (API Base: `http://localhost:5000/api/v1`)
+
+---
+
+### Step 4: Start Frontend
+
+Open a second terminal in the project root:
+
+```bash
+pnpm dev              # or: npm run dev
+```
+> Frontend runs at: **`http://localhost:3000`**
+
+---
+
+## 🌟 Key Features
+
+- 🔍 **Job Search & Filters**: Search by keyword, location, industry, job type, and experience.
+- 📄 **Resume Application**: Upload PDF/DOCX resumes (Multer disk storage with MIME validation).
+- 🏢 **Employer Portal**: Post job vacancies, review applicant profiles, and update candidate statuses.
+- 🎯 **Career Counselling**: Book one-on-one sessions with guidance advisors.
+- 🎪 **Job Fairs**: Discover online and in-person hiring events with unique ticket registration.
+- 🔐 **Dual Auth**: Secure JWT stored in `HttpOnly` cross-site cookies with `Authorization: Bearer` fallback.
+- 🛡️ **Security**: Dynamic CORS reflection, Helmet security headers, rate limiting, and Zod input validation.
+
+---
+
+## 📁 Repository Structure
+
+```
+├── app/                  # Next.js App Router (pages: /jobs, /login, /register, /employers, etc.)
+├── components/           # UI components, forms, layout headers, job cards, auth context
+├── lib/                  # Frontend API client (lib/api.ts), validation, site metadata
+├── public/               # Images and static assets
+├── backend/              # Node.js + Express + TypeScript REST API service
+│   ├── src/              # Controllers, models, services, routes, middleware, validators
+│   ├── uploads/resumes/  # Isolated storage for candidate resumes
+│   └── README.md         # Complete backend workflow and REST API documentation
+└── README.md             # Project overview & local setup guide
 ```
 
----
-
-## 3. Pages
-
-| Route               | Description                                                    |
-| ------------------- | -------------------------------------------------------------- |
-| `/`                 | Home: hero search, stats, services, categories, featured jobs, how it works, employers, job fairs, testimonials |
-| `/jobs`             | Job search with keyword, location, sector, job-type filters and sorting (stored in the URL) |
-| `/jobs/[id]`        | Job details, apply form and similar jobs                       |
-| `/employers`        | Employer benefits and a "Post a Job" form                      |
-| `/career-guidance`  | Counselling info, career articles, and a session booking form   |
-| `/job-fairs`        | Upcoming in-person and virtual job fairs                       |
-| `/about`            | Mission, vision, stats and milestones                          |
-| `/contact`          | Contact details, contact form and FAQs                         |
-| `/login`            | Sign-in form (UI only)                                         |
-| `/register`         | Job seeker / employer registration (UI only, `?role=employer`) |
-
----
-
-## 4. Project structure
-
-```
-app/                     # Routes (one folder per page)
-  layout.tsx             # Root layout: fonts, header, footer, SEO metadata
-  globals.css            # Theme colours & design tokens
-  page.tsx               # Home page
-  jobs/ employers/ career-guidance/ job-fairs/ about/ contact/ login/ register/
-components/
-  layout/                # Site header, footer, logo
-  home/                  # Home page sections
-  jobs/                  # Job card, search bar, filters, apply form
-  employers/ career/ contact/ auth/ job-fairs/
-  forms/form-field.tsx   # Reusable labelled input/select/textarea
-  shared/                # Page header & section heading
-  ui/                    # shadcn/ui primitives
-lib/
-  site.ts                # Company name, contact details, navigation links
-  data.ts                # Sample jobs, categories, employers, events, FAQs
-  validation.ts          # Simple form validation helpers
-public/images/           # Images used on the site
-```
-
----
-
-## 5. Common edits
-
-- **Company name, phone, email, address, menu links** → `lib/site.ts`
-- **Jobs, categories, employers, job fairs, testimonials, FAQs** → `lib/data.ts`
-- **Brand colours & fonts** → the `:root` variables in `app/globals.css` (`--primary`, `--accent`, …) and the fonts in `app/layout.tsx`
-- **Home page sections (order / remove / add)** → `app/page.tsx`
-- **Images** → swap files in `public/images/`
-
----
-
-## 6. Connecting a backend
-
-This is a frontend project. All data comes from `lib/data.ts` and forms validate on the client and then show a success message. To go live:
-
-1. Replace the arrays in `lib/data.ts` with database or API calls (e.g. Neon/Postgres, Supabase).
-2. In each form component (look for `// TODO: send data to your backend`) send the `FormData` to an API route or Server Action.
-3. Add a real authentication provider (e.g. Better Auth, Auth.js, Supabase Auth) to `/login` and `/register`.
-4. Always validate input on the server too.
-
----
-
-## 7. Scripts
-
-| Command      | What it does                     |
-| ------------ | -------------------------------- |
-| `pnpm dev`   | Start the development server     |
-| `pnpm build` | Build for production             |
-| `pnpm start` | Run the production build         |
-| `pnpm lint`  | Run ESLint                       |
+For complete architectural details, business logic workflows, and full API endpoint documentation, see [backend/README.md](file:///home/garvit/Downloads/Website-Building-main/backend/README.md).
