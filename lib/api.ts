@@ -3,8 +3,40 @@
  * Includes credentials for secure HTTP-only cookie authentication.
  */
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+function resolveApiBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || 'https://akshitha-edutech.onrender.com/api/v1';
+  const trimmed = envUrl.trim().replace(/\/+$/, '');
+  if (!trimmed.endsWith('/api/v1')) {
+    return `${trimmed}/api/v1`;
+  }
+  return trimmed;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
+
+const TOKEN_STORAGE_KEY = 'akshitha_auth_token';
+
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token: string | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors in restricted browser contexts
+  }
+}
 
 export class ApiError extends Error {
   public statusCode: number;
@@ -27,12 +59,14 @@ export async function apiClient<T = any>(
 ): Promise<T> {
   const { bodyData, headers, ...rest } = options;
   const isFormData = bodyData instanceof FormData;
+  const token = getAuthToken();
 
   const config: RequestInit = {
     ...rest,
-    credentials: 'include', // Automatically passes HTTP-only cookies
+    credentials: 'include', // Passes HTTP-only cookies when supported
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: isFormData ? bodyData : bodyData ? JSON.stringify(bodyData) : undefined,
@@ -45,6 +79,10 @@ export async function apiClient<T = any>(
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
+      // If unauthorized, clear invalid token
+      if (response.status === 401 && typeof window !== 'undefined') {
+        setAuthToken(null);
+      }
       const message = data?.message || `Request failed with status ${response.status}`;
       throw new ApiError(message, response.status, data?.errors);
     }
@@ -64,27 +102,42 @@ export async function apiClient<T = any>(
 // Typed API modules
 export const api = {
   auth: {
-    login: (data: { email: string; password: string }) =>
-      apiClient<{ success: boolean; data: { user: any } }>('/auth/login', {
+    login: async (data: { email: string; password: string }) => {
+      const res = await apiClient<{ success: boolean; data: { user: any; token?: string } }>('/auth/login', {
         method: 'POST',
         bodyData: data,
-      }),
-    register: (data: {
+      });
+      if (res?.data?.token) {
+        setAuthToken(res.data.token);
+      }
+      return res;
+    },
+    register: async (data: {
       name: string;
       email: string;
       phone: string;
       password: string;
       role: 'jobseeker' | 'employer';
       terms: boolean;
-    }) =>
-      apiClient<{ success: boolean; data: { user: any } }>('/auth/register', {
+    }) => {
+      const res = await apiClient<{ success: boolean; data: { user: any; token?: string } }>('/auth/register', {
         method: 'POST',
         bodyData: data,
-      }),
-    logout: () =>
-      apiClient<{ success: boolean }>('/auth/logout', {
-        method: 'POST',
-      }),
+      });
+      if (res?.data?.token) {
+        setAuthToken(res.data.token);
+      }
+      return res;
+    },
+    logout: async () => {
+      try {
+        return await apiClient<{ success: boolean }>('/auth/logout', {
+          method: 'POST',
+        });
+      } finally {
+        setAuthToken(null);
+      }
+    },
     me: () =>
       apiClient<{ success: boolean; data: { user: any } }>('/auth/me', {
         method: 'GET',

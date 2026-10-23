@@ -8,7 +8,7 @@ export const metadata = {
 }
 
 export default async function CompaniesPage() {
-  let items = companies
+  let items: any[] = [...companies]
 
   try {
     const res = await api.companies.list()

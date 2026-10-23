@@ -38,6 +38,11 @@ export function ApplyForm({
     setErrors(result)
     if (Object.keys(result).length > 0) return
 
+    if (!user) {
+      setServerError('Please log in with a job seeker account to submit your application.')
+      return
+    }
+
     setLoading(true)
     try {
       if (jobId) {
@@ -92,8 +97,15 @@ export function ApplyForm({
           )}
 
           {!user && (
-            <div className="rounded-md bg-secondary/60 p-2.5 text-xs text-muted-foreground">
-              Tip: <Link href="/login" className="font-medium text-primary underline">Sign in</Link> to auto-fill your profile and track applications.
+            <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+              <span className="font-semibold">Sign in required:</span> You need a job seeker account to apply.{' '}
+              <Link href="/login" className="font-semibold text-primary underline">
+                Sign in
+              </Link>{' '}
+              or{' '}
+              <Link href="/register" className="font-semibold text-primary underline">
+                create an account
+              </Link>.
             </div>
           )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '@/lib/api'
+import { api, getAuthToken, setAuthToken } from '@/lib/api'
 
 export interface User {
   id: string
@@ -36,10 +36,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const refreshUser = useCallback(async () => {
+    const token = getAuthToken()
+    if (!token) {
+      setUser(null)
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await api.auth.me()
       setUser(res.data.user)
     } catch {
+      setAuthToken(null)
       setUser(null)
     } finally {
       setLoading(false)
