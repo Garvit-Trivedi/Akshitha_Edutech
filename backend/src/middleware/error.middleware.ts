@@ -48,9 +48,13 @@ export function errorHandler(
 
   // Log error (safe logging: no passwords/tokens)
   if (env.NODE_ENV !== 'test') {
-    console.error(`[Error] ${error.statusCode} - ${error.message}`);
-    if (error.statusCode === 500) {
-      console.error(err.stack || err);
+    if (error.statusCode === 404) {
+      console.log(`[Info] 404 Not Found - ${err.message}`);
+    } else {
+      console.error(`[Error] ${error.statusCode} - ${error.message}`);
+      if (error.statusCode === 500) {
+        console.error(err.stack || err);
+      }
     }
   }
 

@@ -51,6 +51,18 @@ export function createApp(): Application {
   const uploadsPath = path.resolve(__dirname, '../', env.UPLOAD_DIR);
   app.use('/uploads/resumes', express.static(uploadsPath));
 
+  // Root landing & health check for Render, uptime monitors and browsers
+  app.all('/', (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'Akshitha Edutech API Server',
+      message: 'API server is live and healthy',
+      version: '1.0.0',
+      apiBase: '/api/v1',
+      health: '/api/v1/health',
+    });
+  });
+
   // 6. Mount API v1
   app.use('/api/v1', apiRouter);
 

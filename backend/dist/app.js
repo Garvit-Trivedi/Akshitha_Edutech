@@ -46,6 +46,17 @@ function createApp() {
     // 5. Static uploads directory for resumes
     const uploadsPath = path_1.default.resolve(__dirname, '../', env_1.env.UPLOAD_DIR);
     app.use('/uploads/resumes', express_1.default.static(uploadsPath));
+    // Root landing & health check for Render, uptime monitors and browsers
+    app.all('/', (_req, res) => {
+        res.status(200).json({
+            status: 'ok',
+            service: 'Akshitha Edutech API Server',
+            message: 'API server is live and healthy',
+            version: '1.0.0',
+            apiBase: '/api/v1',
+            health: '/api/v1/health',
+        });
+    });
     // 6. Mount API v1
     app.use('/api/v1', routes_1.default);
     // 7. Handle 404 for undefined routes
