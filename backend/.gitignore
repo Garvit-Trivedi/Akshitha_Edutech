@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Environment files & Secrets
+.env
+.env.*
+!.env.example
+
+# Resume Uploads
+uploads/resumes/*
+!uploads/resumes/.gitkeep
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS & Editor
+.DS_Store
