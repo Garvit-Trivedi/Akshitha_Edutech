@@ -19,4 +19,5 @@ services:
       - key: COOKIE_NAME
         value: token
       - key: CLIENT_ORIGINS
+        value: http://localhost:3000,http://127.0.0.1:3000,https://akshita-jade.vercel.app,https://akshitha-edutech.vercel.app
         sync: false

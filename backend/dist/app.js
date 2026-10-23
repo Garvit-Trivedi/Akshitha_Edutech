@@ -22,16 +22,11 @@ function createApp() {
     app.use((0, helmet_1.default)({
         crossOriginResourcePolicy: { policy: 'cross-origin' },
     }));
-    // 2. CORS configuration with explicit origin whitelist
+    // 2. CORS configuration - Allow all origins while preserving credentials/cookies
     app.use((0, cors_1.default)({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-            if (!origin)
-                return callback(null, true);
-            if (env_1.env.CLIENT_ORIGINS.includes(origin)) {
-                return callback(null, true);
-            }
-            return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+        origin: (_origin, callback) => {
+            // Allow all requesting origins dynamically (works with credentials: true)
+            callback(null, true);
         },
         credentials: true, // Essential for HTTP-only cookies
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
