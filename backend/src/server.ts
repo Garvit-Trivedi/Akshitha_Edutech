@@ -19,6 +19,7 @@ async function bootstrap() {
       console.log(`🌍 Environment: ${env.NODE_ENV}`);
       console.log(`🔐 Allowed Origins: ${env.CLIENT_ORIGINS.join(', ')}`);
       console.log(`📚 Base API: http://localhost:${env.PORT}/api/v1`);
+      console.log(`📖 Swagger API Docs: http://localhost:${env.PORT}/api-docs`);
       console.log('====================================================');
     });
 

@@ -3,6 +3,8 @@
 Production-ready backend API service powering the Akshitha Edutech career and employment portal. Built with **Node.js**, **Express.js**, **TypeScript**, and **MongoDB with Mongoose**.
 
 - **API Base URL**: `https://akshitha-edutech.onrender.com/api/v1`
+- **Interactive Swagger API Tester**: `http://localhost:5000/api-docs` (Live: `https://akshitha-edutech.onrender.com/api-docs`)
+- **Raw OpenAPI JSON Spec**: `/api-docs.json`
 - **Health Check**: `https://akshitha-edutech.onrender.com/`
 
 ---

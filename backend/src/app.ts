@@ -3,7 +3,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
+import { swaggerDocument } from './config/swagger';
 import apiRouter from './routes';
 import { generalLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/error.middleware';
@@ -15,9 +17,10 @@ export function createApp(): Application {
   // Enable trust proxy for cloud providers (Render, Railway, Heroku, AWS ALB)
   app.set('trust proxy', 1);
 
-  // 1. Security Headers
+  // 1. Security Headers (CSP disabled to allow interactive Swagger UI styling)
   app.use(
     helmet({
+      contentSecurityPolicy: false,
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     })
   );
@@ -47,6 +50,28 @@ export function createApp(): Application {
   const uploadsPath = path.resolve(__dirname, '../', env.UPLOAD_DIR);
   app.use('/uploads/resumes', express.static(uploadsPath));
 
+  // 6. Interactive Swagger API Documentation & Tester
+  app.get('/api-docs.json', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerDocument);
+  });
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+      customSiteTitle: 'Akshitha Edutech API Documentation & Tester',
+      swaggerOptions: {
+        persistAuthorization: true,
+        docExpansion: 'list',
+        filter: true,
+        displayRequestDuration: true,
+      },
+    })
+  );
+  app.get('/docs', (_req: Request, res: Response) => {
+    res.redirect('/api-docs');
+  });
+
   // Root landing & health check for Render, uptime monitors and browsers
   app.all('/', (_req: Request, res: Response) => {
     res.status(200).json({
@@ -55,11 +80,12 @@ export function createApp(): Application {
       message: 'API server is live and healthy',
       version: '1.0.0',
       apiBase: '/api/v1',
+      docs: '/api-docs',
       health: '/api/v1/health',
     });
   });
 
-  // 6. Mount API v1
+  // 7. Mount API v1
   app.use('/api/v1', apiRouter);
 
   // 7. Handle 404 for undefined routes

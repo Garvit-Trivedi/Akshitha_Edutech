@@ -4,6 +4,7 @@ A full-stack employment and career-services portal connecting job seekers, verif
 
 - **Live Frontend**: [https://akshita-jade.vercel.app](https://akshita-jade.vercel.app)
 - **Live Backend API**: [https://akshitha-edutech.onrender.com](https://akshitha-edutech.onrender.com)
+- **Interactive Swagger API Tester**: [https://akshitha-edutech.onrender.com/api-docs](https://akshitha-edutech.onrender.com/api-docs) (or local: `http://localhost:5000/api-docs`)
 
 ---
 

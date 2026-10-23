@@ -18,6 +18,7 @@ async function bootstrap() {
             console.log(`🌍 Environment: ${env_1.env.NODE_ENV}`);
             console.log(`🔐 Allowed Origins: ${env_1.env.CLIENT_ORIGINS.join(', ')}`);
             console.log(`📚 Base API: http://localhost:${env_1.env.PORT}/api/v1`);
+            console.log(`📖 Swagger API Docs: http://localhost:${env_1.env.PORT}/api-docs`);
             console.log('====================================================');
         });
         // Handle Unhandled Promise Rejections
