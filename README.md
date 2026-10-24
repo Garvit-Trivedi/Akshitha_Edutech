@@ -8,6 +8,26 @@ A full-stack employment and career-services portal connecting job seekers, verif
 
 ---
 
+## 🧪 Demo Credentials & Fast Testing (Testing Purpose Only)
+
+> [!NOTE]
+> **Strictly for Demo & Testing Purposes**: Test credentials and 1-click autofill buttons are provided **solely for rapid evaluation and testing**. In a live production environment, these demo accounts and quick-fill triggers are disabled.
+
+To make testing and evaluation **fast, effortless, and seamless**, test credentials for all roles are provided **directly on the website itself** on the **[Sign In Page](https://akshita-jade.vercel.app/login)**:
+
+- ⚡ **1-Click Autofill on the Website**: You don't need to manually type or register new accounts. Simply click any of the **Quick Demo Login** buttons (**Candidate**, **Employer**, or **Admin**) on the login page to instantly autofill the credentials.
+- 🚀 **Fast Testing Across Roles**: Enables reviewers to switch roles and test candidate applications, employer postings, or administrative management in seconds without setup delay.
+
+### Test Credentials Reference
+
+| Role | Email | Password | Purpose & Scope |
+| :--- | :--- | :--- | :--- |
+| **Candidate** (Jobseeker) | `candidate@akshithaedutech.example` | `CandidatePass123!` | Test job browsing, resume upload applications, counselling bookings. |
+| **Employer** (Hiring Partner) | `employer@nimbus.example` | `EmployerSecurePass123!` | Test vacancy posting, applicant review, candidate status transitions. |
+| **Administrator** | `admin@akshithaedutech.example` | `AdminSecurePass123!` | Test system analytics, job fair management, employer verification. |
+
+---
+
 ## ⚡ Tech Stack
 
 | Layer | Technologies |
@@ -102,7 +122,8 @@ Open a second terminal in the project root:
 ```bash
 pnpm dev              # or: npm run dev
 ```
-> Frontend runs at: **`http://localhost:3000`**
+> Frontend runs at: **`http://localhost:3000`**  
+> 💡 *Tip*: Visit `http://localhost:3000/login` and use the 1-click **Quick Demo Logins** to autofill credentials for Candidate, Employer, or Admin for rapid testing.
 
 ---
 
