@@ -149,6 +149,16 @@ export function ApplyForm({
             name="coverNote"
             placeholder="Why are you a good fit for this position?"
           />
+          {loading && (
+            <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-primary animate-pulse">
+              <svg className="size-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span>Submitting your profile & resume to the employer... Please wait a moment.</span>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}

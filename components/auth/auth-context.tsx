@@ -16,7 +16,7 @@ export interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (data: { email: string; password: string }) => Promise<void>
+  login: (data: { email: string; password: string }) => Promise<User>
   register: (data: {
     name: string
     email: string
@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (data: { email: string; password: string }) => {
     const res = await api.auth.login(data)
     setUser(res.data.user)
+    return res.data.user
   }
 
   const register = async (data: {

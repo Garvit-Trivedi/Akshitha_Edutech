@@ -213,6 +213,21 @@ async function seed() {
       await employer.save();
     }
 
+    console.log('[Seed] Ensuring sample candidate/jobseeker user exists...');
+    const candidateEmail = normalizeEmail('candidate@akshithaedutech.example');
+    let candidate = await User.findOne({ email: candidateEmail });
+    if (!candidate) {
+      candidate = new User({
+        name: 'Rahul Sharma (Candidate)',
+        email: candidateEmail,
+        phone: '9876543222',
+        password: 'CandidatePass123!',
+        role: 'jobseeker',
+        isVerified: true,
+      });
+      await candidate.save();
+    }
+
     console.log('[Seed] Ensuring verified Company profiles exist...');
     await Company.collection.dropIndex('owner_1').catch(() => {});
     const companyNames = [

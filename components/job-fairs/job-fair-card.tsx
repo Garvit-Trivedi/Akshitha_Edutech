@@ -176,7 +176,17 @@ export function JobFairCard({ fair }: { fair: JobFair }) {
                 disabled={loading}
                 className="inline-flex h-9 items-center justify-center rounded-md bg-accent px-4 text-xs font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-60"
               >
-                {loading ? 'Issuing Ticket...' : 'Confirm & Claim Free Entry Pass'}
+                {loading ? (
+                  <span className="flex items-center gap-1.5">
+                    <svg className="size-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Issuing Ticket...
+                  </span>
+                ) : (
+                  'Confirm & Claim Free Entry Pass'
+                )}
               </button>
             </div>
           </form>

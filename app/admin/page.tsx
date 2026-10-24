@@ -29,6 +29,7 @@ export default function AdminPortalPage() {
   const [fairsList, setFairsList] = useState<any[]>([])
   const [jobsList, setJobsList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
 
   // New fair form state
@@ -80,71 +81,89 @@ export default function AdminPortalPage() {
 
   // Handle Employer Verification Toggle
   async function handleVerify(employerId: string, currentStatus: boolean) {
+    setActionLoadingId(`verify-${employerId}`)
     try {
       await api.admin.verifyEmployer(employerId, !currentStatus)
       notify(`Employer verification updated to ${!currentStatus ? 'VERIFIED' : 'UNVERIFIED'}`)
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to update employer verification status.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
   // Handle Counselling Status Update
   async function handleCounsellingStatus(id: string, status: string) {
+    setActionLoadingId(`counsel-${id}-${status}`)
     try {
       await api.admin.updateCounselling(id, status)
       notify(`Counselling request marked as ${status}`)
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to update counselling request.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
   // Handle Contact Status Update
   async function handleContactStatus(id: string, status: string) {
+    setActionLoadingId(`contact-${id}`)
     try {
       await api.admin.updateContact(id, status)
       notify(`Inquiry marked as ${status}`)
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to update contact inquiry.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
   // Handle Create Job Fair
   async function handleCreateFair(e: React.FormEvent) {
     e.preventDefault()
+    setActionLoadingId('create-fair')
     try {
       await api.admin.createJobFair(fairForm)
       notify('New Job Fair successfully published!')
       setShowFairForm(false)
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to create job fair.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
   // Handle Delete Fair
   async function handleDeleteFair(id: string) {
     if (!confirm('Are you sure you want to cancel and delete this job fair?')) return
+    setActionLoadingId(`delete-fair-${id}`)
     try {
       await api.admin.deleteJobFair(id)
       notify('Job Fair removed.')
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to delete job fair.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
   // Handle Close Job
   async function handleCloseJob(id: string) {
     if (!confirm('Are you sure you want to close this job vacancy?')) return
+    setActionLoadingId(`close-job-${id}`)
     try {
       await api.admin.closeJob(id)
       notify('Job listing has been closed.')
-      loadData()
+      await loadData()
     } catch {
       notify('Failed to close job.')
+    } finally {
+      setActionLoadingId(null)
     }
   }
 
@@ -195,9 +214,20 @@ export default function AdminPortalPage() {
           </div>
           <button
             onClick={() => loadData()}
-            className="inline-flex h-9 items-center justify-center rounded-lg border bg-card px-4 text-xs font-semibold text-foreground hover:bg-muted"
+            disabled={loading}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-card px-4 text-xs font-semibold text-foreground transition-all hover:bg-muted disabled:opacity-75"
           >
-            Refresh Platform Data
+            {loading ? (
+              <>
+                <svg className="size-3.5 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>Syncing live data...</span>
+              </>
+            ) : (
+              'Refresh Platform Data'
+            )}
           </button>
         </div>
 
@@ -208,7 +238,17 @@ export default function AdminPortalPage() {
         )}
 
         {/* Stats Grid */}
-        {stats && (
+        {loading && !stats ? (
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 animate-pulse">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="rounded-xl border bg-card p-4 space-y-2">
+                <div className="h-3 w-16 rounded bg-muted/70" />
+                <div className="h-7 w-12 rounded bg-muted/90" />
+                <div className="h-2.5 w-24 rounded bg-muted/50" />
+              </div>
+            ))}
+          </div>
+        ) : stats ? (
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             <div className="rounded-xl border bg-card p-4">
               <p className="text-xs text-muted-foreground">Total Users</p>
@@ -241,7 +281,7 @@ export default function AdminPortalPage() {
               <span className="text-[10px] text-destructive font-medium">Unread messages</span>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Tab Navigation */}
         <div className="mt-8 flex flex-wrap gap-2 border-b border-border/60 pb-3">
@@ -376,24 +416,35 @@ export default function AdminPortalPage() {
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => handleVerify(emp._id, emp.isVerified)}
-                            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            disabled={actionLoadingId === `verify-${emp._id}`}
+                            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
                               emp.isVerified
                                 ? 'border border-destructive/30 text-destructive hover:bg-destructive/10'
                                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
                             }`}
                           >
-                            {emp.isVerified ? 'Revoke Badge' : 'Grant Verified Badge'}
+                            {actionLoadingId === `verify-${emp._id}`
+                              ? 'Updating...'
+                              : emp.isVerified
+                              ? 'Revoke Badge'
+                              : 'Grant Verified Badge'}
                           </button>
                         </td>
                       </tr>
                     ))}
-                    {employers.length === 0 && (
+                    {loading && employers.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground animate-pulse">
+                          Loading employer organizations...
+                        </td>
+                      </tr>
+                    ) : employers.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                           No employer accounts found.
                         </td>
                       </tr>
-                    )}
+                    ) : null}
                   </tbody>
                 </table>
               </div>
@@ -429,22 +480,26 @@ export default function AdminPortalPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleCounsellingStatus(req._id, 'confirmed')}
-                        className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                        disabled={actionLoadingId === `counsel-${req._id}-confirmed`}
+                        className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                       >
-                        Confirm Booking
+                        {actionLoadingId === `counsel-${req._id}-confirmed` ? 'Confirming...' : 'Confirm Booking'}
                       </button>
                       <button
                         onClick={() => handleCounsellingStatus(req._id, 'completed')}
-                        className="rounded-md border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+                        disabled={actionLoadingId === `counsel-${req._id}-completed`}
+                        className="rounded-md border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
                       >
-                        Completed
+                        {actionLoadingId === `counsel-${req._id}-completed` ? 'Updating...' : 'Completed'}
                       </button>
                     </div>
                   </div>
                 ))}
-                {counsellingList.length === 0 && (
+                {loading && counsellingList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading counselling queue...</p>
+                ) : counsellingList.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">No counselling requests recorded yet.</p>
-                )}
+                ) : null}
               </div>
             </div>
           )}
@@ -477,16 +532,19 @@ export default function AdminPortalPage() {
                     {msg.status !== 'resolved' && (
                       <button
                         onClick={() => handleContactStatus(msg._id, 'resolved')}
-                        className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                        disabled={actionLoadingId === `contact-${msg._id}`}
+                        className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                       >
-                        Mark as Resolved
+                        {actionLoadingId === `contact-${msg._id}` ? 'Saving...' : 'Mark as Resolved'}
                       </button>
                     )}
                   </div>
                 ))}
-                {contactList.length === 0 && (
+                {loading && contactList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading support inquiries...</p>
+                ) : contactList.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">No inquiries submitted yet.</p>
-                )}
+                ) : null}
               </div>
             </div>
           )}
@@ -571,9 +629,10 @@ export default function AdminPortalPage() {
                   <div className="sm:col-span-2">
                     <button
                       type="submit"
-                      className="inline-flex h-9 items-center justify-center rounded-lg bg-accent px-4 text-xs font-semibold text-accent-foreground hover:bg-accent/90"
+                      disabled={actionLoadingId === 'create-fair'}
+                      className="inline-flex h-9 items-center justify-center rounded-lg bg-accent px-4 text-xs font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-60"
                     >
-                      Publish Event to Platform
+                      {actionLoadingId === 'create-fair' ? 'Publishing...' : 'Publish Event to Platform'}
                     </button>
                   </div>
                 </form>
@@ -590,13 +649,23 @@ export default function AdminPortalPage() {
                     </div>
                     <button
                       onClick={() => handleDeleteFair(fair._id || fair.id)}
-                      className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      disabled={actionLoadingId === `delete-fair-${fair._id || fair.id}`}
+                      className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                       title="Cancel Event"
                     >
-                      <Trash2 className="size-4" />
+                      {actionLoadingId === `delete-fair-${fair._id || fair.id}` ? (
+                        <span className="text-[10px] animate-spin">⏳</span>
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
                     </button>
                   </div>
                 ))}
+                {loading && fairsList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading job fairs...</p>
+                ) : fairsList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No upcoming job fairs found.</p>
+                ) : null}
               </div>
             </div>
           )}
@@ -632,13 +701,19 @@ export default function AdminPortalPage() {
                       </Link>
                       <button
                         onClick={() => handleCloseJob(job._id || job.id)}
-                        className="inline-flex h-8 items-center rounded-md border border-destructive/30 px-2.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
+                        disabled={actionLoadingId === `close-job-${job._id || job.id}`}
+                        className="inline-flex h-8 items-center rounded-md border border-destructive/30 px-2.5 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-60"
                       >
-                        Close Listing
+                        {actionLoadingId === `close-job-${job._id || job.id}` ? 'Closing...' : 'Close Listing'}
                       </button>
                     </div>
                   </div>
                 ))}
+                {loading && jobsList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading jobs from database...</p>
+                ) : jobsList.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No active job listings found.</p>
+                ) : null}
               </div>
             </div>
           )}

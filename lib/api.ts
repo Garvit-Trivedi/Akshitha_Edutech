@@ -51,19 +51,67 @@ export class ApiError extends Error {
 
 interface RequestOptions extends RequestInit {
   bodyData?: Record<string, any> | FormData;
+  timeoutMs?: number;
+  skipCache?: boolean;
+}
+
+// In-memory response cache for client-side GET queries (TTL: 60 seconds)
+const memoryCache = new Map<string, { timestamp: number; data: any }>();
+const CACHE_TTL_MS = 60 * 1000;
+
+export function clearApiCache(): void {
+  memoryCache.clear();
+}
+
+/**
+ * Silently pings backend health check to wake up Render free tier instances
+ */
+let hasPrewarmed = false;
+export function prewarmBackend(): void {
+  if (hasPrewarmed || typeof window === 'undefined') return;
+  hasPrewarmed = true;
+  fetch(`${API_BASE_URL}/health`, { method: 'GET', keepalive: true }).catch(() => {});
 }
 
 export async function apiClient<T = any>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { bodyData, headers, ...rest } = options;
+  const { bodyData, headers, timeoutMs, skipCache, ...rest } = options;
   const isFormData = bodyData instanceof FormData;
   const token = getAuthToken();
+  const method = (rest.method || 'GET').toUpperCase();
+  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+
+  // 1. Client-side memory cache check for GET requests
+  const cacheKey = `${method}:${url}`;
+  if (method === 'GET' && !skipCache && typeof window !== 'undefined') {
+    const cached = memoryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data as T;
+    }
+  }
+
+  // 2. Clear cache on mutations (POST, PUT, PATCH, DELETE)
+  if (method !== 'GET') {
+    clearApiCache();
+  }
+
+  // 3. Smart timeout:
+  // On SSR (server-side), default to 3500ms so Next.js never hangs on slow backends
+  // On client mutations, default to 25000ms to allow cold starts
+  const isServer = typeof window === 'undefined';
+  const defaultTimeout = timeoutMs ?? (isServer ? 3500 : method === 'GET' ? 10000 : 25000);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), defaultTimeout);
 
   const config: RequestInit = {
     ...rest,
-    credentials: 'include', // Passes HTTP-only cookies when supported
+    signal: controller.signal,
+    credentials: 'include',
+    // Next.js ISR revalidation on server-side GET requests
+    ...(isServer && method === 'GET' ? { next: { revalidate: 60 } } as any : {}),
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -72,14 +120,12 @@ export async function apiClient<T = any>(
     body: isFormData ? bodyData : bodyData ? JSON.stringify(bodyData) : undefined,
   };
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      // If unauthorized, clear invalid token
       if (response.status === 401 && typeof window !== 'undefined') {
         setAuthToken(null);
       }
@@ -87,10 +133,22 @@ export async function apiClient<T = any>(
       throw new ApiError(message, response.status, data?.errors);
     }
 
+    // Save to memory cache on client for GET queries
+    if (method === 'GET' && !skipCache && typeof window !== 'undefined') {
+      memoryCache.set(cacheKey, { timestamp: Date.now(), data });
+    }
+
     return data as T;
   } catch (err: any) {
+    clearTimeout(timeoutId);
     if (err instanceof ApiError) {
       throw err;
+    }
+    if (err.name === 'AbortError') {
+      throw new ApiError(
+        'Server took too long to respond. Falling back to cached data.',
+        504
+      );
     }
     throw new ApiError(
       err?.message || 'Unable to connect to the server. Please check your connection.',

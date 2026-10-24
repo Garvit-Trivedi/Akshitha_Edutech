@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/auth/auth-context'
 
 export function SiteHeader() {
-  const { user, logout } = useAuth()
+  const { user, loading: authLoading, logout } = useAuth()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
@@ -166,7 +166,9 @@ export function SiteHeader() {
           <Link href="/jobs" aria-label="Search jobs" className="inline-flex size-10 items-center justify-center rounded-full text-foreground/75 transition-colors hover:bg-secondary hover:text-primary">
             <Search className="size-5" aria-hidden="true" />
           </Link>
-          {user ? (
+          {authLoading ? (
+            <div className="h-9 w-28 animate-pulse rounded-lg bg-muted/60" />
+          ) : user ? (
             <div className="flex items-center gap-2">
               {user.role === 'admin' && (
                 <Link

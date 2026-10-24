@@ -29,7 +29,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+import { Suspense } from 'react'
 import { AuthProvider } from '@/components/auth/auth-context'
+import { TopNavigationLoader } from '@/components/shared/top-loader'
+import { ServerWarmup } from '@/components/shared/server-warmup'
 
 export default function RootLayout({
   children,
@@ -39,6 +42,10 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${jakarta.variable} bg-background`}>
       <body className="flex min-h-screen flex-col antialiased">
+        <Suspense fallback={null}>
+          <TopNavigationLoader />
+        </Suspense>
+        <ServerWarmup />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
