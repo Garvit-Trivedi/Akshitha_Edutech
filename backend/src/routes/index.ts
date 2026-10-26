@@ -8,6 +8,7 @@ import contactRoutes from './contact.routes';
 import jobFairsRoutes from './jobFairs.routes';
 import adminRoutes from './admin.routes';
 import { ApplicationController } from '../controllers/application.controller';
+import { JobController } from '../controllers/job.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { authorize } from '../middleware/role.middleware';
 
@@ -33,7 +34,14 @@ router.use('/contact', contactRoutes);
 router.use('/job-fairs', jobFairsRoutes);
 router.use('/admin', adminRoutes);
 
-// Dedicated route requested in spec: GET /api/v1/employer/jobs/:id/applications
+// Dedicated Employer Workspace endpoints
+router.get(
+  '/employer/jobs',
+  authenticate,
+  authorize('employer', 'admin'),
+  JobController.getMyJobs
+);
+
 router.get(
   '/employer/jobs/:id/applications',
   authenticate,

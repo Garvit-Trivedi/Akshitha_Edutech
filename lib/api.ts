@@ -229,6 +229,98 @@ export const api = {
         bodyData: formData,
       }),
   },
+  employer: {
+    myJobs: async (currentUser?: { _id?: string; id?: string; name?: string; role?: string }) => {
+      try {
+        return await apiClient<{ success: boolean; count: number; data: any[] }>(
+          '/employer/jobs',
+          {
+            method: 'GET',
+            skipCache: true,
+          }
+        );
+      } catch (err: any) {
+        // Backward-compatible fallback if backend does not yet have /employer/jobs route (e.g. before cloud re-deploy)
+        if (err instanceof ApiError && err.statusCode === 404) {
+          let userId = currentUser?._id || currentUser?.id;
+          let userName = currentUser?.name;
+
+          if (!userId) {
+            try {
+              const meRes = await apiClient<{ success: boolean; data: { user: any } }>(
+                '/auth/me',
+                { method: 'GET', skipCache: true }
+              );
+              userId = meRes?.data?.user?._id || meRes?.data?.user?.id;
+              userName = meRes?.data?.user?.name;
+            } catch {
+              // Ignore
+            }
+          }
+
+          const jobsRes = await apiClient<{ success: boolean; total: number; data: any[] }>(
+            '/jobs?limit=100',
+            { method: 'GET', skipCache: true }
+          );
+
+          const allJobs = jobsRes?.data || [];
+          const myJobs = allJobs.filter((j: any) => {
+            const ownerId = typeof j.owner === 'object' ? j.owner?._id || j.owner?.id : j.owner;
+            if (userId && ownerId && String(ownerId) === String(userId)) return true;
+            if (userName && j.company && j.company.toLowerCase().includes(userName.toLowerCase())) return true;
+            return false;
+          });
+
+          // Concurrently fetch applicant count for each job using /employer/jobs/:id/applications
+          const populatedJobs = await Promise.all(
+            myJobs.map(async (job: any) => {
+              try {
+                const appsRes = await apiClient<{ success: boolean; count: number; data: any[] }>(
+                  `/employer/jobs/${job._id || job.id}/applications`,
+                  { method: 'GET', skipCache: true }
+                );
+                const count = appsRes?.count ?? appsRes?.data?.length ?? 0;
+                return {
+                  ...job,
+                  applicantsCount: count,
+                  applicantCount: count,
+                };
+              } catch {
+                return {
+                  ...job,
+                  applicantsCount: job.applicantsCount || 0,
+                  applicantCount: job.applicantCount || 0,
+                };
+              }
+            })
+          );
+
+          return {
+            success: true,
+            count: populatedJobs.length,
+            data: populatedJobs,
+          };
+        }
+        throw err;
+      }
+    },
+    jobApplications: (jobId: string) =>
+      apiClient<{ success: boolean; count: number; data: any[] }>(
+        `/employer/jobs/${jobId}/applications`,
+        {
+          method: 'GET',
+          skipCache: true,
+        }
+      ),
+    updateApplicationStatus: (applicationId: string, status: string) =>
+      apiClient<{ success: boolean; data: { application: any } }>(
+        `/applications/${applicationId}/status`,
+        {
+          method: 'PATCH',
+          bodyData: { status },
+        }
+      ),
+  },
   companies: {
     list: (params: Record<string, any> = {}) => {
       const query = new URLSearchParams();

@@ -13,6 +13,7 @@ const contact_routes_1 = __importDefault(require("./contact.routes"));
 const jobFairs_routes_1 = __importDefault(require("./jobFairs.routes"));
 const admin_routes_1 = __importDefault(require("./admin.routes"));
 const application_controller_1 = require("../controllers/application.controller");
+const job_controller_1 = require("../controllers/job.controller");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const role_middleware_1 = require("../middleware/role.middleware");
 const router = (0, express_1.Router)();
@@ -34,6 +35,7 @@ router.use('/counselling-requests', counselling_routes_1.default);
 router.use('/contact', contact_routes_1.default);
 router.use('/job-fairs', jobFairs_routes_1.default);
 router.use('/admin', admin_routes_1.default);
-// Dedicated route requested in spec: GET /api/v1/employer/jobs/:id/applications
+// Dedicated Employer Workspace endpoints
+router.get('/employer/jobs', auth_middleware_1.authenticate, (0, role_middleware_1.authorize)('employer', 'admin'), job_controller_1.JobController.getMyJobs);
 router.get('/employer/jobs/:id/applications', auth_middleware_1.authenticate, (0, role_middleware_1.authorize)('employer', 'admin'), application_controller_1.ApplicationController.getJobApplicationsForEmployer);
 exports.default = router;

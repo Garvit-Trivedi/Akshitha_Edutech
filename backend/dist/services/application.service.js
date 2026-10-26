@@ -48,7 +48,13 @@ class ApplicationService {
             .sort({ createdAt: -1 });
     }
     static async getJobApplicationsForEmployer(jobId, employerId, userRole) {
-        const job = await Job_1.Job.findById(jobId);
+        let job = null;
+        if (mongoose_1.default.Types.ObjectId.isValid(jobId)) {
+            job = await Job_1.Job.findById(jobId);
+        }
+        if (!job) {
+            job = await Job_1.Job.findOne({ slug: jobId });
+        }
         if (!job) {
             throw new AppError_1.AppError('Job not found.', 404);
         }
@@ -59,6 +65,26 @@ class ApplicationService {
         return Application_1.Application.find({ job: job._id })
             .populate('applicant', 'name email phone')
             .sort({ createdAt: -1 });
+    }
+    static async getApplicationById(applicationId, userId, userRole) {
+        if (!mongoose_1.default.Types.ObjectId.isValid(applicationId)) {
+            throw new AppError_1.AppError('Invalid application ID.', 400);
+        }
+        const application = await Application_1.Application.findById(applicationId)
+            .populate('job')
+            .populate('applicant', 'name email phone');
+        if (!application) {
+            throw new AppError_1.AppError('Application record not found.', 404);
+        }
+        const job = application.job;
+        const isOwner = job && job.owner && job.owner.toString() === userId;
+        const isApplicant = application.applicant &&
+            (application.applicant._id?.toString() === userId ||
+                application.applicant.toString() === userId);
+        if (userRole !== 'admin' && !isOwner && !isApplicant) {
+            throw new AppError_1.AppError('Forbidden: You are not authorized to access this application record.', 403);
+        }
+        return application;
     }
     static async updateStatus(applicationId, userId, userRole, newStatus) {
         const application = await Application_1.Application.findById(applicationId).populate('job');

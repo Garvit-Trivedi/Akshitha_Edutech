@@ -72,6 +72,8 @@ export function LoginForm() {
       setTimeout(() => {
         if (user?.role === 'admin') {
           router.push('/admin')
+        } else if (user?.role === 'employer') {
+          router.push('/employers')
         } else {
           router.push('/jobs')
         }
@@ -100,13 +102,19 @@ export function LoginForm() {
         <SuccessMessage title="Signed in successfully!">
           {userRole === 'admin'
             ? 'Welcome back, Administrator! Redirecting you to the Admin Dashboard...'
+            : userRole === 'employer'
+            ? 'Welcome back, Employer! Redirecting you to your Employer Dashboard...'
             : 'Welcome back! Redirecting you to opportunities...'}
         </SuccessMessage>
         <Link
-          href={userRole === 'admin' ? '/admin' : '/jobs'}
+          href={userRole === 'admin' ? '/admin' : userRole === 'employer' ? '/employers' : '/jobs'}
           className="inline-flex h-11 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {userRole === 'admin' ? 'Go to Admin Dashboard' : 'Go to Jobs'}
+          {userRole === 'admin'
+            ? 'Go to Admin Dashboard'
+            : userRole === 'employer'
+            ? 'Go to Employer Dashboard'
+            : 'Go to Jobs'}
         </Link>
       </div>
     )

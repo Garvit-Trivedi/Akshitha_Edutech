@@ -613,6 +613,37 @@ This interactive Swagger UI allows you to test all backend endpoints directly fr
       },
     },
 
+    '/api/v1/employer/jobs': {
+      get: {
+        summary: 'Employer: Get My Jobs with Applicant Counts',
+        tags: ['Jobs'],
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        description: 'Returns only the jobs created by the currently authenticated employer, including real-time applicant counts.',
+        responses: {
+          200: {
+            description: 'List of jobs created by the authenticated employer',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    count: { type: 'number', example: 3 },
+                    data: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Job' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: 'Unauthorized: missing or invalid credentials' },
+          403: { description: 'Forbidden: only employer or admin role allowed' },
+        },
+      },
+    },
+
     '/api/v1/employer/jobs/{id}/applications': {
       get: {
         summary: 'Employer: View Applicants for a Job',

@@ -1,6 +1,7 @@
 import mongoose, { FilterQuery } from 'mongoose';
 import { Job, IJob } from '../models/Job';
 import { Company } from '../models/Company';
+import { Application } from '../models/Application';
 import { CreateJobInput, UpdateJobInput, JobQueryInput } from '../validators/job.validator';
 import { AppError } from '../utils/AppError';
 
@@ -149,5 +150,36 @@ export class JobService {
     job.status = 'closed';
     await job.save();
     return job;
+  }
+
+  static async getMyJobs(ownerId: string) {
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+      throw new AppError('Invalid employer ID.', 400);
+    }
+
+    const jobs = await Job.find({ owner: new mongoose.Types.ObjectId(ownerId) }).sort({
+      createdAt: -1,
+    });
+
+    const jobIds = jobs.map((j) => j._id);
+    const counts = await Application.aggregate([
+      { $match: { job: { $in: jobIds } } },
+      { $group: { _id: '$job', count: { $sum: 1 } } },
+    ]);
+
+    const countMap = new Map<string, number>();
+    counts.forEach((c) => {
+      countMap.set(c._id.toString(), c.count);
+    });
+
+    return jobs.map((job) => {
+      const json = job.toJSON();
+      const applicantsCount = countMap.get(job._id.toString()) || 0;
+      return {
+        ...json,
+        applicantsCount,
+        applicantCount: applicantsCount,
+      };
+    });
   }
 }

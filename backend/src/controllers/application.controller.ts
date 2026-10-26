@@ -81,4 +81,20 @@ export class ApplicationController {
       next(error);
     }
   }
+
+  static async getApplication(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const application = await ApplicationService.getApplicationById(
+        req.params.id,
+        req.user!._id.toString(),
+        req.user!.role
+      );
+      res.status(200).json({
+        success: true,
+        data: { application },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

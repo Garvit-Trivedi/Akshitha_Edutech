@@ -8,7 +8,12 @@ import { validate, type FieldErrors } from '@/lib/validation'
 import { api, ApiError } from '@/lib/api'
 import { useAuth } from '@/components/auth/auth-context'
 
-export function PostJobForm() {
+interface PostJobFormProps {
+  onSuccess?: (createdJob?: any) => void
+  onViewMyJobs?: () => void
+}
+
+export function PostJobForm({ onSuccess, onViewMyJobs }: PostJobFormProps = {}) {
   const { user } = useAuth()
   const [errors, setErrors] = useState<FieldErrors>({})
   const [serverError, setServerError] = useState<string | null>(null)
@@ -50,8 +55,9 @@ export function PostJobForm() {
         skills: [String(data.get('category') || 'General')],
       }
 
-      await api.jobs.create(payload)
+      const res = await api.jobs.create(payload)
       setSubmitted(true)
+      onSuccess?.(res?.data?.job)
     } catch (err: any) {
       if (err instanceof ApiError) {
         if (err.statusCode === 401) {
@@ -76,12 +82,30 @@ export function PostJobForm() {
         <SuccessMessage title="Job vacancy published successfully!">
           {"Your job vacancy has been stored in the platform database and is now live for qualified candidates across India."}
         </SuccessMessage>
-        <Link
-          href="/jobs"
-          className="inline-flex h-11 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          View Live Jobs Directory
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          {onViewMyJobs && (
+            <button
+              type="button"
+              onClick={onViewMyJobs}
+              className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              View in My Jobs
+            </button>
+          )}
+          <Link
+            href="/jobs"
+            className="inline-flex h-11 items-center justify-center rounded-lg border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+          >
+            View Live Jobs Directory
+          </Link>
+          <button
+            type="button"
+            onClick={() => setSubmitted(false)}
+            className="inline-flex h-11 items-center justify-center rounded-lg border px-4 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Post Another Vacancy
+          </button>
+        </div>
       </div>
     )
   }

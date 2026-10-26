@@ -14,8 +14,24 @@ import { uploadResume } from '../middleware/upload.middleware';
 
 const router = Router();
 
-// Public listings and details
+// Public listings
 router.get('/', validateQuery(jobQuerySchema), JobController.listJobs);
+
+// Employer: My Jobs (Defined before :id to prevent collision)
+router.get(
+  '/employer/my-jobs',
+  authenticate,
+  authorize('employer', 'admin'),
+  JobController.getMyJobs
+);
+router.get(
+  '/my-jobs',
+  authenticate,
+  authorize('employer', 'admin'),
+  JobController.getMyJobs
+);
+
+// Specific job details
 router.get('/:id', JobController.getJob);
 
 // Employer / Admin job posting & management
@@ -50,6 +66,14 @@ router.post(
   uploadResume.single('resume'),
   validateBody(createApplicationSchema),
   ApplicationController.applyForJob
+);
+
+// Employer / Admin view applicants for a specific job
+router.get(
+  '/:id/applications',
+  authenticate,
+  authorize('employer', 'admin'),
+  ApplicationController.getJobApplicationsForEmployer
 );
 
 export default router;

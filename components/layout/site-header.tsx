@@ -179,6 +179,15 @@ export function SiteHeader() {
                   Admin Panel
                 </Link>
               )}
+              {user.role === 'employer' && (
+                <Link
+                  href="/employers"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                >
+                  <UsersRound className="size-3.5" />
+                  Employer Hub
+                </Link>
+              )}
               <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-xs">
                 <UserCircle className="size-4 text-primary" />
                 <span className="font-semibold text-foreground max-w-[120px] truncate">{user.name}</span>
@@ -253,6 +262,16 @@ export function SiteHeader() {
                     >
                       <ShieldCheck className="size-3.5" />
                       Open Admin Control Center
+                    </Link>
+                  )}
+                  {user.role === 'employer' && (
+                    <Link
+                      href="/employers"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center justify-center gap-1.5 rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                    >
+                      <UsersRound className="size-3.5" />
+                      Open Employer Hub & My Jobs
                     </Link>
                   )}
                   <button

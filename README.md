@@ -28,6 +28,29 @@ To make testing and evaluation **fast, effortless, and seamless**, test credenti
 
 ---
 
+## 📸 Platform Dashboards & Interface Previews
+
+### 1. 🏢 Employer Dashboard (`/employers`)
+*Dedicated workspace for verified hiring partners to publish job vacancies, track candidate applications in real time, evaluate applicant resumes, and monitor hiring pipeline metrics with strict role-based data isolation.*
+
+![Employer Dashboard](docs/screenshots/employer-dashboard.png)
+
+---
+
+### 2. 🛡️ Admin Dashboard (`/admin`)
+*Centralized administrative control center featuring platform-wide KPI analytics (live MongoDB aggregation), employer audit and verification toggles, job fair publishing, career counselling appointment moderation, and inquiries triage.*
+
+![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+
+---
+
+### 3. 👤 User / Candidate Dashboard & Job Portal (`/jobs`)
+*Personalized candidate experience featuring advanced multi-attribute job discovery (industry sector, location, job type, experience level), real-time vacancy cards, authenticated profile management, and direct resume-upload application workflows.*
+
+![User / Candidate Portal](docs/screenshots/user-dashboard.png)
+
+---
+
 ## ⚡ Tech Stack
 
 | Layer | Technologies |
@@ -144,6 +167,7 @@ pnpm dev              # or: npm run dev
 ```
 ├── app/                  # Next.js App Router (pages: /jobs, /login, /register, /employers, etc.)
 ├── components/           # UI components, forms, layout headers, job cards, auth context
+├── docs/screenshots/     # High-resolution dashboard screenshots (Employer, Admin, User)
 ├── lib/                  # Frontend API client (lib/api.ts), validation, site metadata
 ├── public/               # Images and static assets
 ├── backend/              # Node.js + Express + TypeScript REST API service

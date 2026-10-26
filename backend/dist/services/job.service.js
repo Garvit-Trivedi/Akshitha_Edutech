@@ -7,6 +7,7 @@ exports.JobService = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Job_1 = require("../models/Job");
 const Company_1 = require("../models/Company");
+const Application_1 = require("../models/Application");
 const AppError_1 = require("../utils/AppError");
 class JobService {
     static async listJobs(query) {
@@ -123,6 +124,32 @@ class JobService {
         job.status = 'closed';
         await job.save();
         return job;
+    }
+    static async getMyJobs(ownerId) {
+        if (!mongoose_1.default.Types.ObjectId.isValid(ownerId)) {
+            throw new AppError_1.AppError('Invalid employer ID.', 400);
+        }
+        const jobs = await Job_1.Job.find({ owner: new mongoose_1.default.Types.ObjectId(ownerId) }).sort({
+            createdAt: -1,
+        });
+        const jobIds = jobs.map((j) => j._id);
+        const counts = await Application_1.Application.aggregate([
+            { $match: { job: { $in: jobIds } } },
+            { $group: { _id: '$job', count: { $sum: 1 } } },
+        ]);
+        const countMap = new Map();
+        counts.forEach((c) => {
+            countMap.set(c._id.toString(), c.count);
+        });
+        return jobs.map((job) => {
+            const json = job.toJSON();
+            const applicantsCount = countMap.get(job._id.toString()) || 0;
+            return {
+                ...json,
+                applicantsCount,
+                applicantCount: applicantsCount,
+            };
+        });
     }
 }
 exports.JobService = JobService;

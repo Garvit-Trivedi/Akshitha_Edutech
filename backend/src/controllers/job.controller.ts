@@ -81,4 +81,19 @@ export class JobController {
       next(error);
     }
   }
+
+  static async getMyJobs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Strict security: always determine employer ownership via authenticated token
+      const employerId = req.user!._id.toString();
+      const jobs = await JobService.getMyJobs(employerId);
+      res.status(200).json({
+        success: true,
+        count: jobs.length,
+        data: jobs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

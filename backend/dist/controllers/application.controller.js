@@ -60,5 +60,17 @@ class ApplicationController {
             next(error);
         }
     }
+    static async getApplication(req, res, next) {
+        try {
+            const application = await application_service_1.ApplicationService.getApplicationById(req.params.id, req.user._id.toString(), req.user.role);
+            res.status(200).json({
+                success: true,
+                data: { application },
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
 }
 exports.ApplicationController = ApplicationController;

@@ -15,6 +15,13 @@ router.get(
   ApplicationController.getMyApplications
 );
 
+// View single application details (Authorized for applicant or job-owner employer)
+router.get(
+  '/:id',
+  authenticate,
+  ApplicationController.getApplication
+);
+
 // Update status of an application
 router.patch(
   '/:id/status',
